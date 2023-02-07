@@ -1,6 +1,8 @@
 import streamlit as st
 import boto3
 import re
+import scraper_mapdata
+import pandas as pd
 
 # Initialize the S3 client
 s3 = boto3.client("s3")
@@ -64,7 +66,7 @@ nexrad_stations = {
 "WY": ["KCYS", "KRIW"]
 }
 
-def fetch_files_by_fields(year, month, day, state, station):
+def fetch_files_by_fields(year, day, hour):
     # Search the files by filtering through the fields
     pass
 
@@ -72,19 +74,30 @@ def fetch_file_by_filename(filename):
     # Search the file by its complete name
     pass
 
-def goes_fetch_file_by_filename(filename):
-    # Search the file by its complete name
-    pattern = re.compile(r'OR_ABI-L1b-RadC-M\dC\d\d_G\d\d_s\d{15}_e\d{15}_c\d{15}\.nc')
-    if not pattern.match(filename):
-        raise ValueError("Invalid filename format")
+def goes_fetch_file_by_filename(file_name):
+    # # Search the file by its complete name
+    # pattern = re.compile(r'OR_ABI-L1b-RadC-M\dC\d\d_G\d\d_s\d{15}_e\d{15}_c\d{15}\.nc')
+    # if not pattern.match(filename):
+    #     raise ValueError("Invalid filename format")
     
-    elements = filename.split("_")
-    year = elements[3][3:7]
-    day_of_year = elements[3][7:10]
-    path = f"ABI-L1b-RadC/{year}/{day_of_year}/{elements[4][0:3]}/"
-    link = f"https://noaa-goes18.s3.amazonaws.com/{path}{filename}"
+    # elements = filename.split("_")
+    # year = elements[3][3:7]
+    # day_of_year = elements[3][7:10]
+    # path = f"ABI-L1b-RadC/{year}/{day_of_year}/{elements[4][0:3]}/"
+    # link = f"https://noaa-goes18.s3.amazonaws.com/{path}{filename}"
     
-    return link
+    # return link
+    input_url = "https://noaa-goes18.s3.amazonaws.com/"
+    file_name = file_name.strip()
+    file_list = file_name.split("_")
+    sublist=file_list[1].split("-")
+    if (sublist[2].isalpha()) is False:
+        sublist[2] = sublist[2][:-1]
+    sublist_date = file_list[3]
+
+    final_url = input_url+"-".join(sublist[0:3])+'/'+sublist_date[1:5]+'/'+sublist_date[5:8]+'/'+sublist_date[8:10]+'/'+file_name
+
+    return final_url
 
 def copy_file_to_bucket(file_path):
     # Copy the selected file to your S3 bucket
@@ -94,93 +107,17 @@ def retrieve_url_from_bucket(file_path):
     # Retrieve the URL of the file from your S3 bucket
     pass
 
-# def main():
-#     st.title("NEXRAD Doppler Radar Sites")
-
-#     search_by_fields = st.sidebar.checkbox("Search by Fields")
-#     search_by_filename = st.sidebar.checkbox("Search by Filename")
-
-#     if search_by_fields:
-#         year = st.selectbox("Year", [2020, 2021, 2022, 2023])
-#         month = st.selectbox("Month", [1, 2, 3, ..., 12])
-#         day = st.selectbox("Day", [1, 2, 3, ..., 31])
-#         state = st.selectbox("State", states)
-#         station = st.selectbox("NEXRAD Station", nexrad_stations[state])
-
-#         files = fetch_files_by_fields(year, month, day, state, station)
-
-#         file_select = st.selectbox("Select a file", files)
-
-#         if file_select:
-#             file_path = copy_file_to_bucket(file_select)
-#             url = retrieve_url_from_bucket(file_path)
-#             st.write("URL of the selected file:", url)
-
-#     if search_by_filename:
-#         filename = st.text_input("Enter the filename")
-
-#         file = fetch_file_by_filename(filename)
-
-#         if file:
-#             st.write("Link of the file available on NEXRAD bucket:", file)
-
-
-# def main():
-#     st.title("NEXRAD Doppler Radar Sites")
-#     st.markdown(
-#         """
-#         <style>
-#             .title {
-#                 text-align: center;
-#                 color: #2F80ED;
-#             }
-#         </style>
-#         <h2 class="title">Find the Latest NEXRAD Radar Data</h2>
-#         <p>Use the following options to search for NEXRAD radar data.</p>
-#         """,
-#         unsafe_allow_html=True,
-#     )
-
-#     # search options
-#     search_by_fields = st.sidebar.checkbox("Search by Fields")
-#     search_by_filename = st.sidebar.checkbox("Search by Filename")
-
-#     # search by fields
-#     if search_by_fields:
-#         year = st.selectbox("Year", [2020, 2021, 2022, 2023])
-#         month = st.selectbox("Month", [1, 2, 3,4,5,6,7,8,9,10,11, 12])
-#         day = st.selectbox("Day", range(1,32))
-#         state = st.selectbox("State", states)
-#         station = st.selectbox("NEXRAD Station", nexrad_stations[state])
-
-#         files = fetch_files_by_fields(year, month, day, state, station)
-
-#         file_select = st.selectbox("Select a file", files)
-
-#         if file_select:
-#             file_path = copy_file_to_bucket(file_select)
-#             url = retrieve_url_from_bucket(file_path)
-#             st.write("URL of the selected file:", url)
-
-#     # search by filename
-#     if search_by_filename:
-#         filename = st.text_input("Enter the filename")
-
-#         file = fetch_file_by_filename(filename)
-
-#         if file:
-#             st.write("Link of the file available on NEXRAD bucket:", file)
-
-
 
 def main():
     st.set_page_config(page_title="Weather Data Files", layout="wide")
-    page = st.sidebar.selectbox("Select a page", ["NEXRAD", "GOES-18"])
+    page = st.sidebar.selectbox("Select a page", ["NEXRAD", "GOES-18", "NEXRAD Locations - Map"])
 
     if page == "NEXRAD":
         nexrad_main()
     elif page == "GOES-18":
         goes_main()
+    elif page == "NEXRAD Locations - Map":
+        map_main()
 
 
 def nexrad_main():
@@ -275,7 +212,7 @@ def goes_main():
         #display selections
         st.write("Selected values: Year:", year, ", Day:", day, ", Station:", station)
 
-        files = fetch_files_by_fields(year, day, station)
+        files = fetch_files_by_fields(year, day, hour)
 
         if files:
             file_select = st.selectbox("Select a file", files, key='file')
@@ -292,12 +229,27 @@ def goes_main():
     if search_by_filename:
         filename = st.text_input("Enter the filename")
 
-        file = goes_fetch_file_by_filename(str(filename))
+        file = goes_fetch_file_by_filename(filename)
 
-        st.write("Link of the file available on GOES bucket:"+ str(filename))
+        st.write("Link of the file available on GOES bucket:",filename)
 
         if file:
-            st.write("Link of the file available on GOES bucket:"+str(file))
+            st.write("Link of the file available on GOES bucket:",file)
+
+
+def map_main():
+    # st.title("Map Page")
+    st.markdown(
+        """
+        <h1 style="background-color:#1c1c1c; color: white; text-align: center; padding: 15px; border-radius: 10px">
+            Map Page
+        </h1>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    map_data = scraper_mapdata.get_map_data()
+    st.plotly_chart(map_data, use_container_width=True, height=700)
 
 
 if __name__ == "__main__":

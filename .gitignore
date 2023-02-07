@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# User defined
+aws-tutorial/venv_aws
+streamlit-app-satellite-data/venv_stream
