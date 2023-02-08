@@ -131,3 +131,4 @@ dmypy.json
 # User defined
 aws-tutorial/venv_aws
 streamlit-app-satellite-data/venv_stream
+assignment01_demo/venv_demo
