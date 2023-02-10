@@ -313,8 +313,9 @@ def map_main():
     map_fig.update_layout(height=700)
     st.plotly_chart(map_fig, use_container_width=True, height=700)     #plotting on streamlit page
 
-img = Image.open('radar-icon.png')  #for icon of the streamlit wwebsite tab
-st.set_page_config(page_title="Weather Data Files", page_icon = img, layout="wide")
+#img = Image.open('radar-icon.png')  #for icon of the streamlit wwebsite tab
+#st.set_page_config(page_title="Weather Data Files", page_icon = img, layout="wide")
+st.set_page_config(page_title="Weather Data Files", layout="wide")
 page = st.sidebar.selectbox("Select a page", ["GOES-18", "NEXRAD", "NEXRAD Locations - Map"])   #main options of streamlit app
 
 if page == "GOES-18":
@@ -326,7 +327,7 @@ elif page == "NEXRAD":
 elif page == "NEXRAD Locations - Map":
     with st.spinner("Generating map..."): #spinner element
         map_main()
-        
+
 # def main():
 #     img = Image.open('radar-icon.png')  #for icon of the streamlit wwebsite tab
 #     st.set_page_config(page_title="Weather Data Files", page_icon = img, layout="wide")
